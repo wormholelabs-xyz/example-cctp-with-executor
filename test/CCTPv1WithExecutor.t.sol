@@ -8,9 +8,9 @@ import "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
 
 import "example-messaging-executor/evm/src/Executor.sol";
 
-import "../src/CCTPWithExecutor.sol";
-import "../src/interfaces/ICCTPWithExecutor.sol";
-import "../src/interfaces/circle/ICircleTokenMessenger.sol";
+import "../src/CCTPv1WithExecutor.sol";
+import "../src/interfaces/ICCTPv1WithExecutor.sol";
+import "../src/interfaces/circle/ICircleV1TokenMessenger.sol";
 import "../src/interfaces/circle/IMessageTransmitter.sol";
 
 contract MockToken is ERC20, ERC1967Upgrade {
@@ -123,15 +123,17 @@ contract MockMessageTransmitter is IMessageTransmitter {
     }
 }
 
-contract MockCCTPWithExecutor is CCTPWithExecutor {
-    constructor(address _circleTokenMessenger, address _executor) CCTPWithExecutor(_circleTokenMessenger, _executor) {}
+contract MockCCTPv1WithExecutor is CCTPv1WithExecutor {
+    constructor(address _circleTokenMessenger, address _executor)
+        CCTPv1WithExecutor(_circleTokenMessenger, _executor)
+    {}
 }
 
-contract TestCCTPWithExecutor is Test {
+contract TestCCTPv1WithExecutor is Test {
     MockExecutor executor;
     MockMessageTransmitter circleMessageTransmitter;
     MockCircleTokenMessenger circleTokenMessenger;
-    CCTPWithExecutor cctpWithExecutor;
+    CCTPv1WithExecutor cctpWithExecutor;
 
     uint16 constant chainId = 7;
     uint16 constant chainId2 = 8;
@@ -145,7 +147,7 @@ contract TestCCTPWithExecutor is Test {
         executor = new MockExecutor(chainId);
         circleMessageTransmitter = new MockMessageTransmitter(2);
         circleTokenMessenger = new MockCircleTokenMessenger(address(circleMessageTransmitter));
-        cctpWithExecutor = new CCTPWithExecutor(address(circleTokenMessenger), address(executor));
+        cctpWithExecutor = new CCTPv1WithExecutor(address(circleTokenMessenger), address(executor));
 
         string memory url = "https://ethereum-sepolia-rpc.publicnode.com";
         vm.createSelectFork(url);

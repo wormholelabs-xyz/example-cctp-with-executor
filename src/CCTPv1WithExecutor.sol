@@ -7,18 +7,18 @@ import "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import "example-messaging-executor/evm/src/interfaces/IExecutor.sol";
 import "example-messaging-executor/evm/src/libraries/ExecutorMessages.sol";
 
-import {ICircleTokenMessenger} from "./interfaces/circle/ICircleTokenMessenger.sol";
+import {ICircleV1TokenMessenger} from "./interfaces/circle/ICircleV1TokenMessenger.sol";
 import {IMessageTransmitter} from "./interfaces/circle/IMessageTransmitter.sol";
 
-import "./interfaces/ICCTPWithExecutor.sol";
+import "./interfaces/ICCTPv1WithExecutor.sol";
 
-string constant cctpWithExecutorVersion = "CCTPWithExecutor-0.0.1";
+string constant cctpWithExecutorVersion = "CCTPv1WithExecutor-0.0.1";
 
-/// @title CCTPWithExecutor
+/// @title CCTPv1WithExecutor
 /// @author Executor Project Contributors.
-/// @notice The CCTPWithExecutor contract is a shim contract that initiates a Circle transfer using the executor for relaying.
-contract CCTPWithExecutor is ICCTPWithExecutor {
-    ICircleTokenMessenger public immutable circleTokenMessenger;
+/// @notice The CCTPv1WithExecutor contract is a shim contract that initiates a Circle transfer using the executor for relaying.
+contract CCTPv1WithExecutor is ICCTPv1WithExecutor {
+    ICircleV1TokenMessenger public immutable circleTokenMessenger;
     IExecutor public immutable executor;
     uint32 public immutable sourceDomain;
 
@@ -27,7 +27,7 @@ contract CCTPWithExecutor is ICCTPWithExecutor {
     constructor(address _circleTokenMessenger, address _executor) {
         assert(_circleTokenMessenger != address(0));
         assert(_executor != address(0));
-        circleTokenMessenger = ICircleTokenMessenger(_circleTokenMessenger);
+        circleTokenMessenger = ICircleV1TokenMessenger(_circleTokenMessenger);
         executor = IExecutor(_executor);
 
         // The source domain is the local domain on the Message Transmitter contract.
@@ -36,7 +36,7 @@ contract CCTPWithExecutor is ICCTPWithExecutor {
 
     // ==================== External Interface ===============================================
 
-    /// @inheritdoc ICCTPWithExecutor
+    /// @inheritdoc ICCTPv1WithExecutor
     function depositForBurn(
         uint256 amount,
         uint16 destinationChain,

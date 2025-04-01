@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {CCTPWithExecutor, cctpWithExecutorVersion} from "../src/CCTPWithExecutor.sol";
+import {CCTPv1WithExecutor, cctpWithExecutorVersion} from "../src/CCTPv1WithExecutor.sol";
 import "forge-std/Script.sol";
 
-// DeployCCTPWithExecutor is a forge script to deploy the CCTPWithExecutor contract. Use ./sh/deployCCTPWithExecutor.sh to invoke this.
-//    EVM_CHAIN_ID= MNEMONIC= CIRCLE_TOKEN_MESSENGER_ADDR= ./sh/deployCCTPWithExecutor.sh
-contract DeployCCTPWithExecutor is Script {
+// DeployCCTPv1WithExecutor is a forge script to deploy the CCTPv1WithExecutor contract. Use ./sh/deployCCTPv1WithExecutor.sh to invoke this.
+//    EVM_CHAIN_ID= MNEMONIC= CIRCLE_TOKEN_MESSENGER_ADDR= ./sh/deployCCTPv1WithExecutor.sh
+contract DeployCCTPv1WithExecutor is Script {
     function test() public {} // Exclude this from coverage report.
 
     function dryRun(address circleTokenMessenger, address executor) public {
@@ -21,7 +21,7 @@ contract DeployCCTPWithExecutor is Script {
 
     function _deploy(address circleTokenMessenger, address executor) internal returns (address deployedAddress) {
         bytes32 salt = keccak256(abi.encodePacked(cctpWithExecutorVersion));
-        CCTPWithExecutor cctpWithExecutor = new CCTPWithExecutor{salt: salt}(circleTokenMessenger, executor);
+        CCTPv1WithExecutor cctpWithExecutor = new CCTPv1WithExecutor{salt: salt}(circleTokenMessenger, executor);
 
         return (address(cctpWithExecutor));
     }

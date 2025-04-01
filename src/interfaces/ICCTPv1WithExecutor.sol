@@ -12,7 +12,7 @@ struct ExecutorArgs {
     bytes instructions;
 }
 
-interface ICCTPWithExecutor {
+interface ICCTPv1WithExecutor {
     /// @notice Error when the refund to the sender fails.
     /// @dev Selector 0x2ca23714.
     /// @param refundAmount The refund amount.

@@ -3,8 +3,8 @@ pragma solidity ^0.8.19;
 
 import {IMessageTransmitter} from "./IMessageTransmitter.sol";
 
-///@dev This only includes what is needed by the CCTPWithExecutor contract.
-interface ICircleTokenMessenger {
+///@dev This only includes what is needed by the CCTPv1WithExecutor contract.
+interface ICircleV1TokenMessenger {
     /**
      * @notice Deposits and burns tokens from sender to be minted on destination domain.
      * Emits a `DepositForBurn` event.
