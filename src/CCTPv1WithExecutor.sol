@@ -61,20 +61,7 @@ contract CCTPv1WithExecutor is ICCTPv1WithExecutor {
             ExecutorMessages.makeCCTPv1Request(sourceDomain, nonce),
             executorArgs.instructions
         );
-
-        // Refund any excess value back to the caller.
-        // TODO: Not sure this is right.
-        uint256 currentBalance = address(this).balance;
-        if (currentBalance > 0) {
-            (bool refundSuccessful,) = payable(msg.sender).call{value: currentBalance}("");
-            if (!refundSuccessful) {
-                revert RefundFailed(currentBalance);
-            }
-        }
     }
-
-    // necessary for receiving native assets
-    receive() external payable {}
 
     // ==================== Internal Functions ==============================================
 
