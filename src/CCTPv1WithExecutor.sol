@@ -53,7 +53,7 @@ contract CCTPv1WithExecutor is ICCTPv1WithExecutor {
         nonce = circleTokenMessenger.depositForBurn(amount, destinationDomain, mintRecipient, burnToken);
 
         // Generate the executor event.
-        executor.requestExecution{value: executorArgs.value}(
+        executor.requestExecution{value: msg.value}(
             destinationChain,
             bytes32(0), // The executor will derive this. It is the Circle message transmitter on the destination domain.
             executorArgs.refundAddress,

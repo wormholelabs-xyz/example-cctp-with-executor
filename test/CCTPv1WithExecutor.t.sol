@@ -82,8 +82,7 @@ contract MockExecutor is Executor {
         return new bytes(0);
     }
 
-    function createArgs(uint16 dstChain, uint256 value) public view returns (ExecutorArgs memory args) {
-        args.value = value;
+    function createArgs(uint16 dstChain) public view returns (ExecutorArgs memory args) {
         args.refundAddress = msg.sender;
         args.signedQuote = createSignedQuote(dstChain);
         args.instructions = createExecutorInstructions();
@@ -171,8 +170,8 @@ contract TestCCTPv1WithExecutor is Test {
 
         uint256 startingBalance = address(cctpWithExecutor).balance;
 
-        ExecutorArgs memory executorArgs = executor.createArgs(chainId2, 100);
-        uint64 nonce1 = cctpWithExecutor.depositForBurn{value: 10000}(
+        ExecutorArgs memory executorArgs = executor.createArgs(chainId2);
+        uint64 nonce1 = cctpWithExecutor.depositForBurn{value: 100}(
             1 * 10 ** decimals,
             chainId2,
             destinationDomain,

@@ -2,8 +2,6 @@
 pragma solidity ^0.8.19;
 
 struct ExecutorArgs {
-    // The msg value to be passed into the Executor.
-    uint256 value;
     // The refund address used by the Executor.
     address refundAddress;
     // The signed quote to be passed into the Executor.
