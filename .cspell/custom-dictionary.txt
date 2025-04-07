@@ -1,0 +1,17 @@
+# Custom Dictionary Words
+Aptos
+CCTP
+Devnet
+hashv
+idls
+keccak
+permissionless
+permissionlessly
+pubkey
+Pubkey
+Ruleset
+Rulesets
+runtimes
+Solana
+struct
+structs
