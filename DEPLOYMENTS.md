@@ -14,7 +14,7 @@ Commit Hash:
 
 ```sh
 example-ntt-with-executor (main)$ git rev-parse HEAD
-46efa60595fb728b25634d9033cccb538613eb83
+5114e800ba35231ab2a10332bb8a2df954756c66
 example-ntt-with-executor (main)$
 ```
 
@@ -39,9 +39,9 @@ evm (main)$
 
 Here are the deployed contract addresses for each chain. The number after the chain name is the Wormhole chain ID configured for the contract.
 
-- Sepolia (10002): [0xd4F1eeC490de303922c33304aEF838Cc6415E272](https://sepolia.etherscan.io/address/0xd4F1eeC490de303922c33304aEF838Cc6415E272)
-- Base Sepolia (10004): [0x6c9f36f90b641eeA2AB8473D1a5F631f95F77b0F](https://sepolia.basescan.org/address/0x6c9f36f90b641eeA2AB8473D1a5F631f95F77b0F)
-- Avalanche Fuji (6): [0x7f40922e84C0032583a43b80a6dFd62e9dd5d34F](https://testnet.snowtrace.io/address/0x7f40922e84C0032583a43b80a6dFd62e9dd5d34F)
+- Sepolia (10002): [0x4Cbf94024Ff07a7cd69d687084d67773Fc6ef925](https://sepolia.etherscan.io/address/0x4Cbf94024Ff07a7cd69d687084d67773Fc6ef925)
+- Base Sepolia (10004): [0x17166DEC8502769eBD6D30112098a4588eA2e88A](https://sepolia.basescan.org/address/0x17166DEC8502769eBD6D30112098a4588eA2e88A)
+- Avalanche Fuji (6): [0x0254356716c59a3DA3C0e19EFf58511ba7f0002F](https://testnet.snowtrace.io/address/0x0254356716c59a3DA3C0e19EFf58511ba7f0002F)
 
 ### DEPRECATED: April 7, 2025
 

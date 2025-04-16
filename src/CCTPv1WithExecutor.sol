@@ -48,12 +48,12 @@ contract CCTPv1WithExecutor is ICCTPv1WithExecutor {
     ) external payable returns (uint64 nonce) {
         // Custody the tokens in this contract.
         amount = custodyTokens(burnToken, amount);
-        SafeERC20.safeApprove(IERC20(burnToken), address(circleTokenMessenger), amount);
 
         // Transfer the fee to the referrer.
         amount = payFee(burnToken, amount, feeArgs);
 
         // Initiate the transfer.
+        SafeERC20.safeApprove(IERC20(burnToken), address(circleTokenMessenger), amount);
         nonce = circleTokenMessenger.depositForBurn(amount, destinationDomain, mintRecipient, burnToken);
 
         // Generate the executor event.
@@ -93,7 +93,7 @@ contract CCTPv1WithExecutor is ICCTPv1WithExecutor {
         if (fee > 0) {
             // Don't need to check for fee greater than or equal to amount because it can never be (since dbps is a uint16).
             amount -= fee;
-            SafeERC20.safeTransferFrom(IERC20(token), msg.sender, feeArgs.payee, fee);
+            SafeERC20.safeTransfer(IERC20(token), feeArgs.payee, fee);
         }
         return amount;
     }

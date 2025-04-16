@@ -168,9 +168,10 @@ contract TestCCTPv1WithExecutor is Test {
         token.mintDummy(address(user_A), 5 * 10 ** decimals);
 
         vm.startPrank(user_A);
-        token.approve(address(cctpWithExecutor), 3 * 10 ** decimals);
+        token.approve(address(cctpWithExecutor), 1 * 10 ** decimals);
 
-        uint256 startingBalance = address(cctpWithExecutor).balance;
+        uint256 startingBalance = token.balanceOf(address(user_A));
+        uint256 cctpStartingBalance = address(cctpWithExecutor).balance;
         uint256 amount = 1 * 10 ** decimals;
         uint256 expectedFee = (amount * 1) / 100000;
 
@@ -188,8 +189,10 @@ contract TestCCTPv1WithExecutor is Test {
 
         assertEq(nonce1, 0);
 
-        uint256 endingBalance = address(cctpWithExecutor).balance;
-        assertEq(endingBalance, startingBalance);
+        uint256 endingBalance = token.balanceOf(address(user_A));
+        assertEq(endingBalance, startingBalance - amount);
+        uint256 cctpEndingBalance = address(cctpWithExecutor).balance;
+        assertEq(cctpEndingBalance, cctpStartingBalance);
         assertEq(expectedFee, token.balanceOf(referrer));
     }
 
@@ -199,9 +202,10 @@ contract TestCCTPv1WithExecutor is Test {
         token.mintDummy(address(user_A), 5 * 10 ** decimals);
 
         vm.startPrank(user_A);
-        token.approve(address(cctpWithExecutor), 3 * 10 ** decimals);
+        token.approve(address(cctpWithExecutor), 1 * 10 ** decimals);
 
-        uint256 startingBalance = address(cctpWithExecutor).balance;
+        uint256 startingBalance = token.balanceOf(address(user_A));
+        uint256 cctpStartingBalance = address(cctpWithExecutor).balance;
         uint256 amount = 1 * 10 ** decimals;
 
         ExecutorArgs memory executorArgs = executor.createArgs(chainId2);
@@ -218,7 +222,9 @@ contract TestCCTPv1WithExecutor is Test {
 
         assertEq(nonce1, 0);
 
-        uint256 endingBalance = address(cctpWithExecutor).balance;
-        assertEq(endingBalance, startingBalance);
+        uint256 endingBalance = token.balanceOf(address(user_A));
+        assertEq(endingBalance, startingBalance - amount);
+        uint256 cctpEndingBalance = address(cctpWithExecutor).balance;
+        assertEq(cctpEndingBalance, cctpStartingBalance);
     }
 }
