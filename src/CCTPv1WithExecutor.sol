@@ -43,11 +43,15 @@ contract CCTPv1WithExecutor is ICCTPv1WithExecutor {
         uint32 destinationDomain,
         bytes32 mintRecipient,
         address burnToken,
-        ExecutorArgs calldata executorArgs
+        ExecutorArgs calldata executorArgs,
+        FeeArgs calldata feeArgs
     ) external payable returns (uint64 nonce) {
         // Custody the tokens in this contract.
         amount = custodyTokens(burnToken, amount);
         SafeERC20.safeApprove(IERC20(burnToken), address(circleTokenMessenger), amount);
+
+        // Transfer the fee to the referrer.
+        amount = payFee(burnToken, amount, feeArgs);
 
         // Initiate the transfer.
         nonce = circleTokenMessenger.depositForBurn(amount, destinationDomain, mintRecipient, burnToken);
@@ -81,5 +85,16 @@ contract CCTPv1WithExecutor is ICCTPv1WithExecutor {
         (, bytes memory queriedBalance) =
             token.staticcall(abi.encodeWithSelector(IERC20.balanceOf.selector, address(this)));
         balance = abi.decode(queriedBalance, (uint256));
+    }
+
+    // @dev The fee is calculated as a percentage of the amount being transferred.
+    function payFee(address token, uint256 amount, FeeArgs calldata feeArgs) internal returns (uint256) {
+        uint256 fee = (amount * feeArgs.dbps) / 100000;
+        if (fee > 0) {
+            // Don't need to check for fee greater than or equal to amount because it can never be (since dbps is a uint16).
+            amount -= fee;
+            SafeERC20.safeTransferFrom(IERC20(token), msg.sender, feeArgs.payee, fee);
+        }
+        return amount;
     }
 }

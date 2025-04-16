@@ -141,6 +141,7 @@ contract TestCCTPv1WithExecutor is Test {
 
     address user_A = address(0x123);
     address user_B = address(0x456);
+    address referrer = address(0x789);
 
     function setUp() public {
         executor = new MockExecutor(chainId);
@@ -154,6 +155,7 @@ contract TestCCTPv1WithExecutor is Test {
         // Give everyone some money to play with.
         vm.deal(user_A, 1 ether);
         vm.deal(user_B, 1 ether);
+        vm.deal(referrer, 1 ether);
     }
 
     function test_setUp() public view {
@@ -169,15 +171,49 @@ contract TestCCTPv1WithExecutor is Test {
         token.approve(address(cctpWithExecutor), 3 * 10 ** decimals);
 
         uint256 startingBalance = address(cctpWithExecutor).balance;
+        uint256 amount = 1 * 10 ** decimals;
+        uint256 expectedFee = (amount * 1) / 100000;
 
         ExecutorArgs memory executorArgs = executor.createArgs(chainId2);
+        FeeArgs memory feeArgs = FeeArgs({dbps: 1, payee: referrer});
         uint64 nonce1 = cctpWithExecutor.depositForBurn{value: 100}(
-            1 * 10 ** decimals,
+            amount,
             chainId2,
             destinationDomain,
             bytes32(uint256(uint160(address(user_B)))),
             address(token),
-            executorArgs
+            executorArgs,
+            feeArgs
+        );
+
+        assertEq(nonce1, 0);
+
+        uint256 endingBalance = address(cctpWithExecutor).balance;
+        assertEq(endingBalance, startingBalance);
+        assertEq(expectedFee, token.balanceOf(referrer));
+    }
+
+    function test_depositForBurnWithExecutorWithNoFee() public {
+        MockToken token = new MockToken();
+        uint8 decimals = token.decimals();
+        token.mintDummy(address(user_A), 5 * 10 ** decimals);
+
+        vm.startPrank(user_A);
+        token.approve(address(cctpWithExecutor), 3 * 10 ** decimals);
+
+        uint256 startingBalance = address(cctpWithExecutor).balance;
+        uint256 amount = 1 * 10 ** decimals;
+
+        ExecutorArgs memory executorArgs = executor.createArgs(chainId2);
+        FeeArgs memory feeArgs = FeeArgs({dbps: 0, payee: address(0)});
+        uint64 nonce1 = cctpWithExecutor.depositForBurn{value: 100}(
+            amount,
+            chainId2,
+            destinationDomain,
+            bytes32(uint256(uint160(address(user_B)))),
+            address(token),
+            executorArgs,
+            feeArgs
         );
 
         assertEq(nonce1, 0);
