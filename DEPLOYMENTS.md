@@ -2,7 +2,48 @@
 
 ## Testnet
 
-### April 16, 2025
+### April 23, 2025
+
+This version fixes a possible overflow in the fee calculation.
+
+#### Version Info
+
+Commit Hash:
+
+<!-- cspell:disable -->
+
+```sh
+example-ntt-with-executor (main)$ git rev-parse HEAD
+8fb6ced234b09e58e7fda0f738a1595e9fbf94c7
+example-ntt-with-executor (main)$
+```
+
+<!-- cspell:enable -->
+
+Foundry Version:
+
+<!-- cspell:disable -->
+
+```sh
+evm (main)$ forge --version
+forge Version: 1.0.0-stable
+Commit SHA: e144b82070619b6e10485c38734b4d4d45aebe04
+Build Timestamp: 2025-02-13T20:03:31.026474817Z (1739477011)
+Build Profile: maxperf
+evm (main)$
+```
+
+<!-- cspell:enable -->
+
+#### Chains Deployed
+
+Here are the deployed contract addresses for each chain. The number after the chain name is the Wormhole chain ID configured for the contract.
+
+- Sepolia (10002): [0x0F78904c750801391EbBf308181e9d6fc892B0f3](https://sepolia.etherscan.io/address/0x0F78904c750801391EbBf308181e9d6fc892B0f3)
+- Base Sepolia (10004): [0x4983C6bD3bB7DA9EECe71cfa7AE4C67CAbf362F0](https://sepolia.basescan.org/address/0x4983C6bD3bB7DA9EECe71cfa7AE4C67CAbf362F0)
+- Avalanche Fuji (6): [0x2cfEC91B50f657Cc86Ec693542527ac3e03bF742](https://testnet.snowtrace.io/address/0x2cfEC91B50f657Cc86Ec693542527ac3e03bF742)
+
+### DEPRECATED: April 16, 2025
 
 This version adds support for paying a fee to the referrer.
 
