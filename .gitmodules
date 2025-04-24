@@ -7,3 +7,6 @@
 [submodule "lib/example-messaging-executor"]
 	path = lib/example-messaging-executor
 	url = https://github.com/wormholelabs-xyz/example-messaging-executor
+[submodule "aptos/cctp_v1_with_executor/lib/aptos-cctp"]
+	path = aptos/cctp_v1_with_executor/lib/aptos-cctp
+	url = https://github.com/circlefin/aptos-cctp
