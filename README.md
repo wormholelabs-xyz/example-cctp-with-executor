@@ -64,7 +64,13 @@ cast send --value $VALUE 0xD0864BE4021A6E6674d21d2E4412E9B9e7df370a --private-ke
 
 <!-- cspell:enable -->
 
-## Foundry
+# CCTP Version 2 With Executor Shim
+
+This contract provides the ability to invoke a CCTP version 2 `depositForBurn` and request that the executor relay the attestation to the destination domain.
+
+Please see the [deployments file](DEPLOYMENTS.md) for where it is currently available.
+
+# Foundry
 
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
 

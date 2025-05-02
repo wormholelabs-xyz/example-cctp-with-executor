@@ -134,3 +134,46 @@ forge verify-bytecode <contract_addr> CCTPv1WithExecutor --rpc-url <archive_node
 ```
 
 <!-- cspell:enable -->
+
+# CCTPv2WithExecutor EVM Deployments
+
+## Testnet
+
+### May 2, 2025
+
+This is the initial deployment.
+
+#### Version Info
+
+Commit Hash:
+
+<!-- cspell:disable -->
+
+```sh
+
+```
+
+<!-- cspell:enable -->
+
+Foundry Version:
+
+<!-- cspell:disable -->
+
+```sh
+evm (main)$ forge --version
+forge Version: 1.0.0-stable
+Commit SHA: e144b82070619b6e10485c38734b4d4d45aebe04
+Build Timestamp: 2025-02-13T20:03:31.026474817Z (1739477011)
+Build Profile: maxperf
+evm (main)$
+```
+
+<!-- cspell:enable -->
+
+#### Chains Deployed
+
+Here are the deployed contract addresses for each chain. The number after the chain name is the Wormhole chain ID configured for the contract.
+
+- Sepolia (10002): []()
+- Base Sepolia (10004): []()
+- Avalanche Fuji (6): []()
