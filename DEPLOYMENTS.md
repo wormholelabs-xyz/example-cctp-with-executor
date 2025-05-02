@@ -150,6 +150,9 @@ Commit Hash:
 <!-- cspell:disable -->
 
 ```sh
+example-cctp-with-executor (main)$ git rev-parse HEAD
+d46c585dba875708b65210a6fbce8471d9466126
+example-cctp-with-executor (main)$
 
 ```
 
@@ -174,6 +177,6 @@ evm (main)$
 
 Here are the deployed contract addresses for each chain. The number after the chain name is the Wormhole chain ID configured for the contract.
 
-- Sepolia (10002): []()
-- Base Sepolia (10004): []()
-- Avalanche Fuji (6): []()
+- Sepolia (10002): [0x0F18DD26D0B41fb1eaa9cF34D1Ec6022aA69a8e2](https://sepolia.etherscan.io/address/0x0F18DD26D0B41fb1eaa9cF34D1Ec6022aA69a8e2)
+- Base Sepolia (10004): [0xC400FcC0e92d3406747FBb6f513D3aa8B038fcE9](https://sepolia.basescan.org/address/0xC400FcC0e92d3406747FBb6f513D3aa8B038fcE9)
+- Avalanche Fuji (6): [0x4058F0C3924eDaB19c15597C438968ed49C1a213](https://testnet.snowtrace.io/address/0x4058F0C3924eDaB19c15597C438968ed49C1a213)
