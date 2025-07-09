@@ -1,22 +1,40 @@
-# CCTP Version 1 With Executor Shim
+# Example CCTP With Executor
+
+This repo contains Aptos and EVM helper contracts for bundling a [CCTP](https://developers.circle.com/cctp) transfer with an [Executor](https://github.com/wormholelabs-xyz/example-messaging-executor) request for execution in a single transaction.
+
+For the SVM (Solana) contract, see https://github.com/wormholelabs-xyz/example-cctp-with-executor-svm
+
+Deployments can be found at https://wormholelabs.notion.site/Executor-Addresses-Public-1f93029e88cb80df940eeb8867a0108
+
+⚠ **This software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+implied. See the License for the specific language governing permissions and limitations under the License.** Or plainly
+spoken - this is a very complex piece of software which targets a bleeding-edge, experimental smart contract runtime.
+Mistakes happen, and no matter how hard you try and whether you pay someone to audit it, it may eat your tokens, set
+your printer on fire or startle your cat. Cryptocurrencies are a high-risk investment, no matter how fancy.
+
+## Aptos
+
+See [aptos/README.md](./aptos/README.md)
+
+## EVM
+
+### CCTP Version 1 With Executor Shim
 
 This contract provides the ability to invoke a CCTP version 1 `depositForBurn` and request that the executor relay the attestation to the destination domain.
 
-Please see the [deployments file](DEPLOYMENTS.md) for where it is currently available.
-
-## Simple Test Case
+#### Simple Test Case
 
 It is possible to invoke this contract using the `cast` command. This example does a `depositForBurn` of USDC **from Sepolia to Base Sepolia**.
 
 **NOTE**: To use this example, you need the URL for the Executor Quote Server. See the executor docs for details.
 
-### Approve the contract to spend the tokens
+##### Approve the contract to spend the tokens
 
 First you need to approve the contract to spend some tokens. You can do this in the explorer by going to the
 [USDC ERC20 contract](https://sepolia.etherscan.io/address/0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238#writeProxyContract), connecting your wallet and approving the contract
 (0xD0864BE4021A6E6674d21d2E4412E9B9e7df370a) to spend the desired value. This example assumes a value of one.
 
-### Generate the Executor parameters
+##### Generate the Executor parameters
 
 Next you need to generate the executor parameters for a transfer from Sepolia (10002) to Base Sepolia (1004) as follows. Note that quotes expire, so don't generate them too far in advance.
 
@@ -37,7 +55,7 @@ $ curl -X 'POST' \
 
 <!-- cspell:enable -->
 
-### Set environment variables
+##### Set environment variables
 
 This example assumes the following environment variables.
 
@@ -52,7 +70,7 @@ This example assumes the following environment variables.
 - $SIGNED_QUOTE is the `signedQuote` from above.
 - $INST is the `relayInstructions` from above.
 
-### Use the cast command to initiate the transfer
+##### Use the cast command to initiate the transfer
 
 Finally, you can use a cast command like this to invoke the contract to do the `depostForBurn`.
 
@@ -64,75 +82,6 @@ cast send --value $VALUE 0xD0864BE4021A6E6674d21d2E4412E9B9e7df370a --private-ke
 
 <!-- cspell:enable -->
 
-# CCTP Version 2 With Executor Shim
+### CCTP Version 2 With Executor Shim
 
 This contract provides the ability to invoke a CCTP version 2 `depositForBurn` and request that the executor relay the attestation to the destination domain.
-
-Please see the [deployments file](DEPLOYMENTS.md) for where it is currently available.
-
-# Foundry
-
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
-
-Foundry consists of:
-
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
