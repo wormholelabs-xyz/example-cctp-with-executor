@@ -16,14 +16,14 @@ Ensure the `aptos-cctp` has been pulled.
 
 ```bash
 cd aptos/cctp_v1_with_executor
-git submodule init --recursive  -- lib/aptos-cctp
+git submodule init -- lib/aptos-cctp
 ```
 
 If its submodules could not be cloned, modify `lib/aptos-cctp/.gitmodules` and replace `git@github.com:` with `https://github.com/`. Then,
 
 ```bash
 git submodule sync --recursive
-git submodule init --recursive  -- lib/aptos-cctp
+git submodule update --init --recursive -- lib/aptos-cctp
 ```
 
 Add `--skip-fetch-latest-git-deps` to skip fetching the dependencies again.
