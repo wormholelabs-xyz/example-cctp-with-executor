@@ -24,15 +24,17 @@ module cctp_v1_with_executor::cctp_v1_with_executor {
         refund_addr: address, 
         signed_quote_bytes: vector<u8>, 
         relay_instructions: vector<u8>,
-        dbps: u16,
+        transfer_token_fee: u64,
+        native_token_fee: u64,
         payee: address,
     ) {
         let token_obj: Object<Metadata> = object::address_to_object(burn_token);
-        let fee = calculate_fee(amount, dbps);
-        if (fee > 0) {
-            // Don't need to check for fee greater than or equal to amount because it can never be (since dbps is a uint16).
-            amount -= fee;
-            primary_fungible_store::transfer(caller, token_obj, payee, fee);
+        if (transfer_token_fee > 0) {
+            primary_fungible_store::transfer(caller, token_obj, payee, transfer_token_fee);
+        };
+        if (native_token_fee > 0) {
+            let fee_coin = coin::withdraw<AptosCoin>(caller, native_token_fee);
+            coin::deposit(payee, fee_coin);
         };
         let asset = primary_fungible_store::withdraw(caller, token_obj, amount);
         let nonce = token_messenger::deposit_for_burn(
@@ -52,11 +54,5 @@ module cctp_v1_with_executor::cctp_v1_with_executor {
             req,
             relay_instructions,
         );
-    }
-
-    fun calculate_fee(amount: u64, dbps: u16): u64 {
-        let q = amount / 100000;
-        let r = amount % 100000;
-        q * (dbps as u64) + (r * (dbps as u64)) / 100000
     }
 }

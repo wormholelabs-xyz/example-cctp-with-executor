@@ -31,7 +31,7 @@ local = "lib/aptos-cctp/packages/token_messenger_minter"
 
 [dependencies.AptosFramework]
 git = "https://github.com/aptos-labs/aptos-framework.git"
-rev = "mainnet"
+rev = "aptos-release-v1.29"
 subdir = "aptos-framework"
 
 [dev-dependencies]
