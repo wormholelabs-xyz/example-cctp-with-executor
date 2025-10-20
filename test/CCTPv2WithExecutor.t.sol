@@ -170,22 +170,26 @@ contract TestCCTPv2WithExecutor is Test {
     function test_depositForBurnWithExecutor() public {
         MockToken token = new MockToken();
         uint8 decimals = token.decimals();
+        uint256 transferTokenFee = 1;
+        uint256 nativeTokenFee = 2;
         token.mintDummy(address(user_A), 5 * 10 ** decimals);
 
         vm.startPrank(user_A);
-        token.approve(address(cctpWithExecutor), 1 * 10 ** decimals);
+        token.approve(address(cctpWithExecutor), 1 * 10 ** decimals + transferTokenFee);
 
         uint256 startingBalance = token.balanceOf(address(user_A));
         uint256 cctpStartingBalance = address(cctpWithExecutor).balance;
         uint256 amount = 1 * 10 ** decimals;
-        uint256 expectedFee = (amount * 1) / 100000;
+        uint256 expectedTokenFee = transferTokenFee;
+        uint256 expectedNativeFee = address(referrer).balance + nativeTokenFee;
 
         bytes32 destinationCaller; // Anyone can broadcast the message on the destination chain.
         uint256 maxFee = 123;
         uint32 minFinalityThreshold = 1000;
 
         ExecutorArgs memory executorArgs = executor.createArgs(chainId2);
-        FeeArgs memory feeArgs = FeeArgs({dbps: 1, payee: address(referrer)});
+        FeeArgs memory feeArgs =
+            FeeArgs({transferTokenFee: transferTokenFee, nativeTokenFee: nativeTokenFee, payee: referrer});
         cctpWithExecutor.depositForBurn{value: 100}(
             amount,
             chainId2,
@@ -200,10 +204,11 @@ contract TestCCTPv2WithExecutor is Test {
         );
 
         uint256 endingBalance = token.balanceOf(address(user_A));
-        assertEq(endingBalance, startingBalance - amount);
+        assertEq(endingBalance, startingBalance - amount - transferTokenFee);
         uint256 cctpEndingBalance = address(cctpWithExecutor).balance;
         assertEq(cctpEndingBalance, cctpStartingBalance);
-        assertEq(expectedFee, token.balanceOf(referrer));
+        assertEq(expectedTokenFee, token.balanceOf(referrer));
+        assertEq(expectedNativeFee, address(referrer).balance);
     }
 
     function test_depositForBurnWithExecutorWithNoFee() public {
@@ -223,7 +228,7 @@ contract TestCCTPv2WithExecutor is Test {
         uint32 minFinalityThreshold = 1000;
 
         ExecutorArgs memory executorArgs = executor.createArgs(chainId2);
-        FeeArgs memory feeArgs = FeeArgs({dbps: 0, payee: address(0)});
+        FeeArgs memory feeArgs = FeeArgs({transferTokenFee: 0, nativeTokenFee: 0, payee: address(0)});
         cctpWithExecutor.depositForBurn{value: 100}(
             amount,
             chainId2,
