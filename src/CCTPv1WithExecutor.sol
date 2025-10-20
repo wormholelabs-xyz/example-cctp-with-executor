@@ -49,15 +49,15 @@ contract CCTPv1WithExecutor is ICCTPv1WithExecutor {
         // Custody the tokens in this contract.
         amount = custodyTokens(burnToken, amount);
 
-        // Transfer the fee to the referrer.
-        amount = payFee(burnToken, amount, feeArgs);
+        // Transfer the fees to the referrer.
+        payFee(burnToken, feeArgs);
 
         // Initiate the transfer.
         SafeERC20.safeApprove(IERC20(burnToken), address(circleTokenMessenger), amount);
         nonce = circleTokenMessenger.depositForBurn(amount, destinationDomain, mintRecipient, burnToken);
 
         // Generate the executor event.
-        executor.requestExecution{value: msg.value}(
+        executor.requestExecution{value: msg.value - feeArgs.nativeTokenFee}(
             destinationChain,
             bytes32(0), // The executor will derive this. It is the Circle message transmitter on the destination domain.
             executorArgs.refundAddress,
@@ -87,22 +87,18 @@ contract CCTPv1WithExecutor is ICCTPv1WithExecutor {
         balance = abi.decode(queriedBalance, (uint256));
     }
 
-    // @dev The fee is calculated as a percentage of the amount being transferred.
-    function payFee(address token, uint256 amount, FeeArgs calldata feeArgs) internal returns (uint256) {
-        uint256 fee = calculateFee(amount, feeArgs.dbps);
-        if (fee > 0) {
-            // Don't need to check for fee greater than or equal to amount because it can never be (since dbps is a uint16).
-            amount -= fee;
+    // @dev The fee is taken in addition to the amount being transferred.
+    function payFee(address token, FeeArgs calldata feeArgs) internal {
+        if (feeArgs.transferTokenFee > 0) {
+            // custody separately in case the amount after transfer doesn't match
+            uint256 fee = custodyTokens(token, feeArgs.transferTokenFee);
             SafeERC20.safeTransfer(IERC20(token), feeArgs.payee, fee);
         }
-        return amount;
-    }
-
-    function calculateFee(uint256 amount, uint16 dbps) public pure returns (uint256 fee) {
-        unchecked {
-            uint256 q = amount / 100000;
-            uint256 r = amount % 100000;
-            fee = q * dbps + (r * dbps) / 100000;
+        if (feeArgs.nativeTokenFee > 0) {
+            (bool paymentSuccessful,) = payable(feeArgs.payee).call{value: feeArgs.nativeTokenFee}("");
+            if (!paymentSuccessful) {
+                revert PaymentFailed(feeArgs.nativeTokenFee);
+            }
         }
     }
 }
