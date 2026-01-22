@@ -12,7 +12,7 @@ import {IMessageTransmitter} from "./interfaces/circle/IMessageTransmitter.sol";
 
 import "./interfaces/ICCTPv2WithExecutor.sol";
 
-string constant cctpWithExecutorVersion = "CCTPv2WithExecutor-0.0.1";
+string constant cctpWithExecutorVersion = "CCTPv2WithExecutor-0.0.2";
 
 /// @title CCTPv2WithExecutor
 /// @author Executor Project Contributors.
@@ -56,7 +56,7 @@ contract CCTPv2WithExecutor is ICCTPv2WithExecutor {
         payFee(burnToken, feeArgs);
 
         // Initiate the transfer.
-        SafeERC20.safeIncreaseAllowance(IERC20(burnToken), address(circleTokenMessenger), amount);
+        _maxApproveIfNeeded(burnToken, address(circleTokenMessenger), amount);
         circleTokenMessenger.depositForBurn(
             amount, destinationDomain, mintRecipient, burnToken, destinationCaller, maxFee, minFinalityThreshold
         );
@@ -104,6 +104,16 @@ contract CCTPv2WithExecutor is ICCTPv2WithExecutor {
             if (!paymentSuccessful) {
                 revert PaymentFailed(feeArgs.nativeTokenFee);
             }
+        }
+    }
+
+    /// @dev This is based on what is in the MayanForwarder contract here: https://github.com/mayan-finance/swap-bridge/blob/main/src/MayanForwarder.sol
+    function _maxApproveIfNeeded(address tokenAddr, address spender, uint256 amount) internal {
+        IERC20 token = IERC20(tokenAddr);
+        uint256 currentAllowance = token.allowance(address(this), spender);
+        if (currentAllowance < amount) {
+            SafeERC20.safeApprove(token, spender, 0);
+            SafeERC20.safeApprove(token, spender, type(uint256).max);
         }
     }
 }
