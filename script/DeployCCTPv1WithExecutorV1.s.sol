@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {CCTPv1WithExecutor, cctpWithExecutorVersion} from "../src/CCTPv1WithExecutor.sol";
+import {CCTPv1WithExecutor, cctpWithExecutorVersion} from "../src/CCTPv1WithExecutor/v1/CCTPv1WithExecutor.sol";
 import "forge-std/Script.sol";
 
-// DeployCCTPv1WithExecutor is a forge script to deploy the CCTPv1WithExecutor contract. Use ./sh/deployCCTPv1WithExecutor.sh to invoke this.
-contract DeployCCTPv1WithExecutor is Script {
+// DeployCCTPv1WithExecutorV1 deploys CCTPv1WithExecutor contract version 0.0.1.
+// Use ./sh/deployCCTPv1WithExecutorV1.sh to invoke this.
+contract DeployCCTPv1WithExecutorV1 is Script {
     function test() public {} // Exclude this from coverage report.
 
     function dryRun(address circleTokenMessenger, address executor) public {

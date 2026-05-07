@@ -7,8 +7,8 @@ import "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import "example-messaging-executor/evm/src/interfaces/IExecutor.sol";
 import "example-messaging-executor/evm/src/libraries/ExecutorMessages.sol";
 
-import {ICircleV2TokenMessenger} from "./interfaces/circle/ICircleV2TokenMessenger.sol";
-import {IMessageTransmitter} from "./interfaces/circle/IMessageTransmitter.sol";
+import {ICircleV2TokenMessenger} from "../../interfaces/circle/ICircleV2TokenMessenger.sol";
+import {IMessageTransmitter} from "../../interfaces/circle/IMessageTransmitter.sol";
 
 import "./interfaces/ICCTPv2WithExecutor.sol";
 

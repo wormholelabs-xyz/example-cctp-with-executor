@@ -7,18 +7,18 @@ import "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import "example-messaging-executor/evm/src/interfaces/IExecutor.sol";
 import "example-messaging-executor/evm/src/libraries/ExecutorMessages.sol";
 
-import {ICircleV1TokenMessenger} from "./interfaces/circle/ICircleV1TokenMessenger.sol";
-import {IMessageTransmitter} from "./interfaces/circle/IMessageTransmitter.sol";
+import {ICircleV2TokenMessenger} from "../../interfaces/circle/ICircleV2TokenMessenger.sol";
+import {IMessageTransmitter} from "../../interfaces/circle/IMessageTransmitter.sol";
 
-import "./interfaces/ICCTPv1WithExecutor.sol";
+import "./interfaces/ICCTPv2WithExecutor.sol";
 
-string constant cctpWithExecutorVersion = "CCTPv1WithExecutor-0.0.2";
+string constant cctpWithExecutorVersion = "CCTPv2WithExecutor-0.0.1";
 
-/// @title CCTPv1WithExecutor
+/// @title CCTPv2WithExecutor
 /// @author Executor Project Contributors.
-/// @notice The CCTPv1WithExecutor contract is a shim contract that initiates a Circle transfer using the executor for relaying.
-contract CCTPv1WithExecutor is ICCTPv1WithExecutor {
-    ICircleV1TokenMessenger public immutable circleTokenMessenger;
+/// @notice The CCTPv2WithExecutor contract is a shim contract that initiates a Circle transfer using the executor for relaying.
+contract CCTPv2WithExecutor is ICCTPv2WithExecutor {
+    ICircleV2TokenMessenger public immutable circleTokenMessenger;
     IExecutor public immutable executor;
     uint32 public immutable sourceDomain;
 
@@ -27,7 +27,7 @@ contract CCTPv1WithExecutor is ICCTPv1WithExecutor {
     constructor(address _circleTokenMessenger, address _executor) {
         assert(_circleTokenMessenger != address(0));
         assert(_executor != address(0));
-        circleTokenMessenger = ICircleV1TokenMessenger(_circleTokenMessenger);
+        circleTokenMessenger = ICircleV2TokenMessenger(_circleTokenMessenger);
         executor = IExecutor(_executor);
 
         // The source domain is the local domain on the Message Transmitter contract.
@@ -36,33 +36,38 @@ contract CCTPv1WithExecutor is ICCTPv1WithExecutor {
 
     // ==================== External Interface ===============================================
 
-    /// @inheritdoc ICCTPv1WithExecutor
+    /// @inheritdoc ICCTPv2WithExecutor
     function depositForBurn(
         uint256 amount,
         uint16 destinationChain,
         uint32 destinationDomain,
         bytes32 mintRecipient,
         address burnToken,
+        bytes32 destinationCaller,
+        uint256 maxFee,
+        uint32 minFinalityThreshold,
         ExecutorArgs calldata executorArgs,
         FeeArgs calldata feeArgs
-    ) external payable returns (uint64 nonce) {
+    ) external payable {
         // Custody the tokens in this contract.
         amount = custodyTokens(burnToken, amount);
 
-        // Transfer the fees to the referrer.
-        payFee(burnToken, feeArgs);
+        // Transfer the fee to the referrer.
+        amount = payFee(burnToken, amount, feeArgs);
 
         // Initiate the transfer.
-        _maxApproveIfNeeded(burnToken, address(circleTokenMessenger), amount);
-        nonce = circleTokenMessenger.depositForBurn(amount, destinationDomain, mintRecipient, burnToken);
+        SafeERC20.safeIncreaseAllowance(IERC20(burnToken), address(circleTokenMessenger), amount);
+        circleTokenMessenger.depositForBurn(
+            amount, destinationDomain, mintRecipient, burnToken, destinationCaller, maxFee, minFinalityThreshold
+        );
 
         // Generate the executor event.
-        executor.requestExecution{value: msg.value - feeArgs.nativeTokenFee}(
+        executor.requestExecution{value: msg.value}(
             destinationChain,
             bytes32(0), // The executor will derive this. It is the Circle message transmitter on the destination domain.
             executorArgs.refundAddress,
             executorArgs.signedQuote,
-            ExecutorMessages.makeCCTPv1Request(sourceDomain, nonce),
+            ExecutorMessages.makeCCTPv2Request(),
             executorArgs.instructions
         );
     }
@@ -87,28 +92,22 @@ contract CCTPv1WithExecutor is ICCTPv1WithExecutor {
         balance = abi.decode(queriedBalance, (uint256));
     }
 
-    // @dev The fee is taken in addition to the amount being transferred.
-    function payFee(address token, FeeArgs calldata feeArgs) internal {
-        if (feeArgs.transferTokenFee > 0) {
-            // custody separately in case the amount after transfer doesn't match
-            uint256 fee = custodyTokens(token, feeArgs.transferTokenFee);
+    // @dev The fee is calculated as a percentage of the amount being transferred.
+    function payFee(address token, uint256 amount, FeeArgs calldata feeArgs) internal returns (uint256) {
+        uint256 fee = calculateFee(amount, feeArgs.dbps);
+        if (fee > 0) {
+            // Don't need to check for fee greater than or equal to amount because it can never be (since dbps is a uint16).
+            amount -= fee;
             SafeERC20.safeTransfer(IERC20(token), feeArgs.payee, fee);
         }
-        if (feeArgs.nativeTokenFee > 0) {
-            (bool paymentSuccessful,) = payable(feeArgs.payee).call{value: feeArgs.nativeTokenFee}("");
-            if (!paymentSuccessful) {
-                revert PaymentFailed(feeArgs.nativeTokenFee);
-            }
-        }
+        return amount;
     }
 
-    /// @dev This is based on what is in the MayanForwarder contract here: https://github.com/mayan-finance/swap-bridge/blob/main/src/MayanForwarder.sol
-    function _maxApproveIfNeeded(address tokenAddr, address spender, uint256 amount) internal {
-        IERC20 token = IERC20(tokenAddr);
-        uint256 currentAllowance = token.allowance(address(this), spender);
-        if (currentAllowance < amount) {
-            SafeERC20.safeApprove(token, spender, 0);
-            SafeERC20.safeApprove(token, spender, type(uint256).max);
+    function calculateFee(uint256 amount, uint16 dbps) public pure returns (uint256 fee) {
+        unchecked {
+            uint256 q = amount / 100000;
+            uint256 r = amount % 100000;
+            fee = q * dbps + (r * dbps) / 100000;
         }
     }
 }
