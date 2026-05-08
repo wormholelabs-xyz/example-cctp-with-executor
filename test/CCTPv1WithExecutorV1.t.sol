@@ -8,16 +8,14 @@ import "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
 
 import "example-messaging-executor/evm/src/Executor.sol";
 
-import "../src/CCTPv2WithExecutor.sol";
-import "../src/interfaces/ICCTPv2WithExecutor.sol";
-import "../src/interfaces/circle/ICircleV2TokenMessenger.sol";
+import {CCTPv1WithExecutor, cctpWithExecutorVersion} from "../src/CCTPv1WithExecutor/v1/CCTPv1WithExecutor.sol";
+import "../src/CCTPv1WithExecutor/v1/interfaces/ICCTPv1WithExecutor.sol";
+import "../src/interfaces/circle/ICircleV1TokenMessenger.sol";
 import "../src/interfaces/circle/IMessageTransmitter.sol";
 
 contract MockToken is ERC20, ERC1967Upgrade {
     constructor() ERC20("MockToken", "DTKN") {}
 
-    // NOTE: this is purposefully not called mint() to so we can test that in
-    // locking mode the NttManager contract doesn't call mint (or burn)
     function mintDummy(address to, uint256 amount) public {
         _mint(to, amount);
     }
@@ -46,7 +44,6 @@ contract MockExecutor is Executor {
         return ourChain;
     }
 
-    // NOTE: This was copied from the tests in the executor repo.
     function encodeSignedQuoteHeader(Executor.SignedQuoteHeader memory signedQuote)
         public
         pure
@@ -82,12 +79,6 @@ contract MockExecutor is Executor {
         return new bytes(0);
     }
 
-    function createArgs(uint16 dstChain) public view returns (ExecutorArgs memory args) {
-        args.refundAddress = msg.sender;
-        args.signedQuote = createSignedQuote(dstChain);
-        args.instructions = createExecutorInstructions();
-    }
-
     function msgValue() public pure returns (uint256) {
         return 0;
     }
@@ -95,20 +86,15 @@ contract MockExecutor is Executor {
 
 contract MockCircleTokenMessenger {
     IMessageTransmitter public immutable messageTransmitter;
+    uint64 public nonce;
 
     constructor(address _messageTransmitter) {
         messageTransmitter = IMessageTransmitter(_messageTransmitter);
     }
 
-    function depositForBurn(
-        uint256 amount,
-        uint32 destinationDomain,
-        bytes32 mintRecipient,
-        address burnToken,
-        bytes32 destinationCaller,
-        uint256 maxFee,
-        uint32 minFinalityThreshold
-    ) external pure {}
+    function depositForBurn(uint256, uint32, bytes32, address) external returns (uint64 _nonce) {
+        _nonce = nonce++;
+    }
 
     function localMessageTransmitter() external view returns (IMessageTransmitter) {
         return messageTransmitter;
@@ -127,17 +113,11 @@ contract MockMessageTransmitter is IMessageTransmitter {
     }
 }
 
-contract MockCCTPv2WithExecutor is CCTPv2WithExecutor {
-    constructor(address _circleTokenMessenger, address _executor)
-        CCTPv2WithExecutor(_circleTokenMessenger, _executor)
-    {}
-}
-
-contract TestCCTPv2WithExecutor is Test {
+contract TestCCTPv1WithExecutorV1 is Test {
     MockExecutor executor;
     MockMessageTransmitter circleMessageTransmitter;
     MockCircleTokenMessenger circleTokenMessenger;
-    CCTPv2WithExecutor cctpWithExecutor;
+    CCTPv1WithExecutor cctpWithExecutor;
 
     uint16 constant chainId = 7;
     uint16 constant chainId2 = 8;
@@ -148,16 +128,21 @@ contract TestCCTPv2WithExecutor is Test {
     address user_B = address(0x456);
     address referrer = address(0x789);
 
+    function _createExecutorArgs(uint16 dstChain) internal view returns (ExecutorArgs memory args) {
+        args.refundAddress = msg.sender;
+        args.signedQuote = executor.createSignedQuote(dstChain);
+        args.instructions = executor.createExecutorInstructions();
+    }
+
     function setUp() public {
         executor = new MockExecutor(chainId);
         circleMessageTransmitter = new MockMessageTransmitter(2);
         circleTokenMessenger = new MockCircleTokenMessenger(address(circleMessageTransmitter));
-        cctpWithExecutor = new CCTPv2WithExecutor(address(circleTokenMessenger), address(executor));
+        cctpWithExecutor = new CCTPv1WithExecutor(address(circleTokenMessenger), address(executor));
 
         string memory url = "https://ethereum-sepolia-rpc.publicnode.com";
         vm.createSelectFork(url);
 
-        // Give everyone some money to play with.
         vm.deal(user_A, 1 ether);
         vm.deal(user_B, 1 ether);
         vm.deal(referrer, 1 ether);
@@ -170,45 +155,35 @@ contract TestCCTPv2WithExecutor is Test {
     function test_depositForBurnWithExecutor() public {
         MockToken token = new MockToken();
         uint8 decimals = token.decimals();
-        uint256 transferTokenFee = 1;
-        uint256 nativeTokenFee = 2;
         token.mintDummy(address(user_A), 5 * 10 ** decimals);
 
         vm.startPrank(user_A);
-        token.approve(address(cctpWithExecutor), 1 * 10 ** decimals + transferTokenFee);
+        token.approve(address(cctpWithExecutor), 1 * 10 ** decimals);
 
         uint256 startingBalance = token.balanceOf(address(user_A));
         uint256 cctpStartingBalance = address(cctpWithExecutor).balance;
         uint256 amount = 1 * 10 ** decimals;
-        uint256 expectedTokenFee = transferTokenFee;
-        uint256 expectedNativeFee = address(referrer).balance + nativeTokenFee;
+        uint256 expectedFee = (amount * 1) / 100000;
 
-        bytes32 destinationCaller; // Anyone can broadcast the message on the destination chain.
-        uint256 maxFee = 123;
-        uint32 minFinalityThreshold = 1000;
-
-        ExecutorArgs memory executorArgs = executor.createArgs(chainId2);
-        FeeArgs memory feeArgs =
-            FeeArgs({transferTokenFee: transferTokenFee, nativeTokenFee: nativeTokenFee, payee: referrer});
-        cctpWithExecutor.depositForBurn{value: 100}(
+        ExecutorArgs memory executorArgs = _createExecutorArgs(chainId2);
+        FeeArgs memory feeArgs = FeeArgs({dbps: 1, payee: referrer});
+        uint64 nonce1 = cctpWithExecutor.depositForBurn{value: 100}(
             amount,
             chainId2,
             destinationDomain,
             bytes32(uint256(uint160(address(user_B)))),
             address(token),
-            destinationCaller,
-            maxFee,
-            minFinalityThreshold,
             executorArgs,
             feeArgs
         );
 
+        assertEq(nonce1, 0);
+
         uint256 endingBalance = token.balanceOf(address(user_A));
-        assertEq(endingBalance, startingBalance - amount - transferTokenFee);
+        assertEq(endingBalance, startingBalance - amount);
         uint256 cctpEndingBalance = address(cctpWithExecutor).balance;
         assertEq(cctpEndingBalance, cctpStartingBalance);
-        assertEq(expectedTokenFee, token.balanceOf(referrer));
-        assertEq(expectedNativeFee, address(referrer).balance);
+        assertEq(expectedFee, token.balanceOf(referrer));
     }
 
     function test_depositForBurnWithExecutorWithNoFee() public {
@@ -223,28 +198,46 @@ contract TestCCTPv2WithExecutor is Test {
         uint256 cctpStartingBalance = address(cctpWithExecutor).balance;
         uint256 amount = 1 * 10 ** decimals;
 
-        bytes32 destinationCaller; // Anyone can broadcast the message on the destination chain.
-        uint256 maxFee = 123;
-        uint32 minFinalityThreshold = 1000;
-
-        ExecutorArgs memory executorArgs = executor.createArgs(chainId2);
-        FeeArgs memory feeArgs = FeeArgs({transferTokenFee: 0, nativeTokenFee: 0, payee: address(0)});
-        cctpWithExecutor.depositForBurn{value: 100}(
+        ExecutorArgs memory executorArgs = _createExecutorArgs(chainId2);
+        FeeArgs memory feeArgs = FeeArgs({dbps: 0, payee: address(0)});
+        uint64 nonce1 = cctpWithExecutor.depositForBurn{value: 100}(
             amount,
             chainId2,
             destinationDomain,
             bytes32(uint256(uint160(address(user_B)))),
             address(token),
-            destinationCaller,
-            maxFee,
-            minFinalityThreshold,
             executorArgs,
             feeArgs
         );
+
+        assertEq(nonce1, 0);
 
         uint256 endingBalance = token.balanceOf(address(user_A));
         assertEq(endingBalance, startingBalance - amount);
         uint256 cctpEndingBalance = address(cctpWithExecutor).balance;
         assertEq(cctpEndingBalance, cctpStartingBalance);
+    }
+
+    function test_calculateFee() public view {
+        assertEq(12345, cctpWithExecutor.calculateFee(123456, 10000));
+        assertEq(1234, cctpWithExecutor.calculateFee(123456, 1000));
+        assertEq(123, cctpWithExecutor.calculateFee(123456, 100));
+        assertEq(12, cctpWithExecutor.calculateFee(123456, 10));
+        assertEq(1, cctpWithExecutor.calculateFee(123456, 1));
+
+        assertEq(0, cctpWithExecutor.calculateFee(123456, 0));
+        assertEq(0, cctpWithExecutor.calculateFee(1, 1));
+        assertEq(80907406, cctpWithExecutor.calculateFee(123456789, type(uint16).max));
+
+        assertEq(
+            75884345681675168670837245025443620411640484450627543643258527679585869509531,
+            cctpWithExecutor.calculateFee(type(uint256).max, type(uint16).max)
+        );
+        assertEq(type(uint256).max / 100000, cctpWithExecutor.calculateFee(type(uint256).max, 1));
+        assertEq(0, cctpWithExecutor.calculateFee(type(uint256).max, 0));
+    }
+
+    function test_calculateFeeFuzz(uint256 amount, uint16 dbps) public view returns (uint256 fee) {
+        fee = cctpWithExecutor.calculateFee(amount, dbps);
     }
 }

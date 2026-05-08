@@ -1,0 +1,14 @@
+{
+  "aptos/cctp_v1_with_executor/lib/aptos-cctp": {
+    "rev": "4d8901d11e904d6d8b23dcab3ae513576cc4885d"
+  },
+  "lib/example-messaging-executor": {
+    "rev": "50919f86ba1fbd6a78cac9939e96ca300e0f6221"
+  },
+  "lib/forge-std": {
+    "rev": "3b20d60d14b343ee4f908cb8079495c07f5e8981"
+  },
+  "lib/openzeppelin-contracts": {
+    "rev": "49c0e4370d0cc50ea6090709e3835a3091e33ee2"
+  }
+}

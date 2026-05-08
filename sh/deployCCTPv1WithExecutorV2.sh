@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #
-# This script deploys the CCTPv1WithExecutor contract.
-# Usage: RPC_URL= MNEMONIC= EVM_CHAIN_ID= CIRCLE_TOKEN_MESSENGER_ADDR= EXECUTOR= ./sh/deployCCTPv1WithExecutor.sh
+# This script deploys the CCTPv1WithExecutor contract version 0.0.2.
+# Usage: RPC_URL= MNEMONIC= EVM_CHAIN_ID= CIRCLE_TOKEN_MESSENGER_ADDR= EXECUTOR= ./sh/deployCCTPv1WithExecutorV2.sh
 
 [[ -z $CIRCLE_TOKEN_MESSENGER_ADDR ]] && { echo "Missing Circle Token Messenger address"; exit 1; }
 [[ -z $EXECUTOR ]] && { echo "Missing EXECUTOR"; exit 1; }
@@ -19,13 +19,13 @@ if [ "${EVM_CHAIN_ID}X" == "X" ]; then
   EVM_CHAIN_ID=1337
 fi
 
-forge script ./script/DeployCCTPv1WithExecutor.s.sol:DeployCCTPv1WithExecutor \
+forge script ./script/DeployCCTPv1WithExecutorV2.s.sol:DeployCCTPv1WithExecutorV2 \
 	--sig "run(address,address)" $CIRCLE_TOKEN_MESSENGER_ADDR $EXECUTOR \
 	--rpc-url "$RPC_URL" \
 	--private-key "$MNEMONIC" \
 	--broadcast ${FORGE_ARGS}
 
-returnInfo=$(cat ./broadcast/DeployCCTPv1WithExecutor.s.sol/$EVM_CHAIN_ID/run-latest.json)
+returnInfo=$(cat ./broadcast/DeployCCTPv1WithExecutorV2.s.sol/$EVM_CHAIN_ID/run-latest.json)
 
 DEPLOYED_ADDRESS=$(jq -r '.returns.deployedAddress.value' <<< "$returnInfo")
-echo "Deployed CCTP with executor address: $DEPLOYED_ADDRESS"
+echo "Deployed CCTPv1WithExecutor v0.0.2 address: $DEPLOYED_ADDRESS"
